@@ -1,0 +1,111 @@
+{% load quiz_tags %}
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <title>مسابقه</title>
+</head>
+<body class="bg-gray-900 text-white p-4 min-h-screen">
+    <!-- هدر -->
+    <header class="bg-gray-800 p-4 rounded-lg shadow mb-6">
+        <div class="flex justify-between items-center">
+            <h2 class="text-xl font-bold">مسابقه</h2>
+            <div class="flex items-center gap-4">
+                <span class="text-gray-300">کاربر: {{ user.name }}</span>
+                <a href="{% url 'quiz:leaderboard' %}" class="text-blue-400 hover:underline">جدول امتیازات</a>
+                <a href="{% url 'quiz:logout_user' %}" class="text-red-400 hover:underline">خروج</a>
+            </div>
+        </div>
+    </header>
+
+    <div class="max-w-3xl mx-auto bg-gray-800 p-6 rounded-lg shadow">
+        {% for question in questions %}
+            <div class="mt-4 p-4 border border-gray-700 rounded" id="question-{{ question.id }}">
+                <p id="result-message-{{ question.id }}" class="text-lg font-bold mb-2 hidden"></p>
+                <p class="font-semibold">{{ question.text }}</p>
+                {% if question.image %}
+                    <img src="{{ question.image.url }}" class="w-full mt-2 rounded">
+                {% endif %}
+                <div class="mt-2 flex flex-col sm:flex-row gap-2">
+                    {% for answer in question.answers.all %}
+                        <button
+                            type="button"
+                            class="bg-blue-600 hover:bg-blue-700 text-white p-2 rounded m-1 transition
+                            {% if question.id in answered_questions %} bg-gray-500 cursor-not-allowed {% endif %}"
+                            {% if question.id in answered_questions %} disabled {% endif %}
+                            onclick="submitAnswer({{ question.id }}, {{ answer.id }})">
+                            {{ answer.text }}
+                        </button>
+                    {% endfor %}
+                </div>
+            </div>
+        {% endfor %}
+
+
+        <p class="mt-6 text-lg">امتیاز شما: <span id="score" class="font-bold">{{ user.score }}</span></p>
+    </div>
+
+    <script>
+        function getCSRFToken() {
+            let cookieValue = null;
+            let cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                let cookie = cookies[i].trim();
+                if (cookie.startsWith('csrftoken=')) {
+                    cookieValue = cookie.substring(10);
+                    break;
+                }
+            }
+            return cookieValue;
+        }
+
+        function submitAnswer(questionId, answerId) {
+            const resultMessage = document.getElementById(`result-message-${questionId}`);
+            const buttons = document.querySelectorAll(`#question-${questionId} button`);
+
+            if (resultMessage.classList.contains('hidden')) {
+                fetch("/submit-answer/", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "X-CSRFToken": getCSRFToken()
+                    },
+                    body: JSON.stringify({
+                        question_id: questionId,
+                        answer_id: answerId
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.error) {
+                        alert(data.error);
+                        window.location.href = "{% url 'quiz:register_user' %}";
+                        return;
+                    }
+                    if (data.correct) {
+                        resultMessage.textContent = "✅ درست!";
+                        resultMessage.className = "text-green-500 text-lg font-bold mb-2";
+                    } else {
+                        resultMessage.textContent = "❌ اشتباه!";
+                        resultMessage.className = "text-red-500 text-lg font-bold mb-2";
+                    }
+                    resultMessage.classList.remove('hidden');
+
+                    // قفل کردن دکمه‌ها
+                    buttons.forEach(button => {
+                        button.disabled = true;
+                        button.classList.add('bg-gray-500');
+                        button.classList.remove('hover:bg-blue-700');
+                    });
+
+                    document.getElementById('score').innerText = data.score;
+                })
+                .catch(error => console.error("Error:", error));
+            }
+        }
+
+    </script>
+</body>
+</html>

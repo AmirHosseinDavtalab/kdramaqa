@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <title>ثبت‌نام</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-900 flex items-center justify-center h-screen">
+    <div class="bg-gray-800 p-8 rounded-lg shadow-lg w-full max-w-md">
+        <h2 class="text-2xl font-bold mb-4 text-white">ثبت‌نام</h2>
+        {% if error %}
+            <p class="text-red-500 mb-4">{{ error }}</p>
+        {% endif %}
+        <form method="post">
+            {% csrf_token %}
+            <input type="text" name="name" placeholder="نام خود را وارد کنید" required class="border border-gray-600 p-2 w-full mb-4 rounded bg-gray-700 text-white placeholder-gray-400">
+            <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white p-2 w-full rounded transition">ورود به مسابقه</button>
+        </form>
+    </div>
+</body>
+</html>

@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <title>جدول امتیازات</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-900 text-white p-4 min-h-screen">
+    <header class="bg-gray-800 p-4 rounded-lg shadow mb-6">
+        <div class="flex justify-between items-center">
+            <h2 class="text-xl font-bold">جدول امتیازات</h2>
+            <div class="flex items-center gap-4">
+                {% if current_user %}
+                    <span class="text-gray-300">کاربر: {{ current_user.name }}</span>
+                    <a href="{% url 'quiz:logout_user' %}" class="text-red-400 hover:underline">خروج</a>
+                {% else %}
+                    <a href="{% url 'quiz:register_user' %}" class="text-blue-400 hover:underline">ورود</a>
+                {% endif %}
+            </div>
+        </div>
+    </header>
+
+    <div class="max-w-3xl mx-auto bg-gray-800 p-6 rounded-lg shadow">
+        <h1 class="text-2xl font-bold mb-4">جدول امتیازات</h1>
+        <table class="table-auto w-full text-right">
+            <thead>
+                <tr class="bg-gray-700">
+                    <th class="px-4 py-2">رتبه</th>
+                    <th class="px-4 py-2">نام</th>
+                    <th class="px-4 py-2">امتیاز</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for user in users %}
+                <tr class="bg-gray-800 hover:bg-gray-700 transition">
+                    <td class="border px-4 py-2">{{ forloop.counter }}</td>
+                    <td class="border px-4 py-2">{{ user.name }}</td>
+                    <td class="border px-4 py-2">{{ user.score }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="3" class="text-center py-4 text-gray-400">هیچ کاربری هنوز ثبت نشده!</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        <div class="mt-4">
+            <a href="{% url 'quiz:quiz_home' %}" class="text-blue-400 hover:underline">بازگشت به مسابقه</a>
+        </div>
+    </div>
+</body>
+</html>
