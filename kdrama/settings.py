@@ -13,24 +13,20 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 from pathlib import Path
 import os
 import dj_database_url
-from django.contrib import staticfiles
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
-
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-#ha5e*xhpb)$i9m73l=_&23=bs6!!$hgx9y$v*$v290$(b6jd-'
+SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-#ha5e*xhpb)$i9m73l=_&23=bs6!!$hgx9y$v*$v290$(b6jd-')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.getenv('DEBUG', 'False') == 'True'
 
 ALLOWED_HOSTS = ['web-production-242a.up.railway.app', 'localhost', '127.0.0.1']
-
-
 
 # Application definition
 
@@ -59,8 +55,7 @@ ROOT_URLCONF = 'kdrama.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [BASE_DIR / 'templates']
-        ,
+        'DIRS': [BASE_DIR / 'templates'],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -73,29 +68,22 @@ TEMPLATES = [
     },
 ]
 
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.postgresql',
-#         'NAME': 'quiz',
-#         'USER': 'postgres',
-#         'PASSWORD': 'AhDIU1981',
-#         'HOST': 'localhost',
-#         'PORT': '5432',
-#     }
-# }
+# تنظیمات دیتابیس
 DATABASES = {
     'default': dj_database_url.config(
-        default=os.environ.get('DATABASE_URL')
+        default=os.getenv('DATABASE_URL'),
+        conn_max_age=600
     )
 }
 
+# اگه تو محیط محلی هستی و DATABASE_URL تنظیم نشده، از SQLite استفاده کن
+if not os.getenv('DATABASE_URL'):
+    DATABASES['default'] = {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+    }
+
 WSGI_APPLICATION = 'kdrama.wsgi.application'
-
-
-# Database
-# https://docs.djangoproject.com/en/5.1/ref/settings/#databases
-
-
 
 # Password validation
 # https://docs.djangoproject.com/en/5.1/ref/settings/#auth-password-validators
@@ -115,27 +103,22 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-
 # Internationalization
 # https://docs.djangoproject.com/en/5.1/topics/i18n/
 
-LANGUAGE_CODE = 'en-us'
-
-TIME_ZONE = 'UTC'
-
+LANGUAGE_CODE = 'fa'  # برای فارسی
+TIME_ZONE = 'Asia/Tehran'  # منطقه زمانی ایران
 USE_I18N = True
-
 USE_TZ = True
-
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.1/howto/static-files/
 
 STATIC_URL = '/static/'
-STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')  # برای جمع‌آوری فایل‌های استاتیک
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
 
-
+# تنظیمات مدیا
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
@@ -144,4 +127,8 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
+# تنظیمات برای CSRF
 CSRF_TRUSTED_ORIGINS = ['https://web-production-242a.up.railway.app']
+
+# تنظیمات برای Railway
+SECURE_SSL_REDIRECT = False  # برای تست، بعداً می‌تونی فعالش کنی
