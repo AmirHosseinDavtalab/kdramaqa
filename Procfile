@@ -1,0 +1,1 @@
+web: gunicorn kdrama.wsgi --log-file -
